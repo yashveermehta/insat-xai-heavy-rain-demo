@@ -1,0 +1,65 @@
+{
+  "total_test": 750,
+  "total_errors": 228,
+  "error_rate": 0.304,
+  "false_positives": 117,
+  "false_negatives": 111,
+  "failure_patterns": [
+    {
+      "feature": "BT_DIFF",
+      "label": "BT Difference TIR1\u2212TIR2 (K)",
+      "wrong_mean": 0.201,
+      "correct_mean": -0.174,
+      "difference": 0.376,
+      "wrong_std": 0.795
+    },
+    {
+      "feature": "BT_TIR2",
+      "label": "Brightness Temp TIR-2 (K)",
+      "wrong_mean": -0.165,
+      "correct_mean": 0.146,
+      "difference": 0.31,
+      "wrong_std": 0.942
+    },
+    {
+      "feature": "BT_TIR1",
+      "label": "Brightness Temp TIR-1 (K)",
+      "wrong_mean": 0.117,
+      "correct_mean": -0.097,
+      "difference": 0.214,
+      "wrong_std": 0.918
+    },
+    {
+      "feature": "month",
+      "label": "Month",
+      "wrong_mean": -0.15,
+      "correct_mean": 0.031,
+      "difference": 0.181,
+      "wrong_std": 0.93
+    },
+    {
+      "feature": "BT_WV",
+      "label": "Brightness Temp WV (K)",
+      "wrong_mean": -0.036,
+      "correct_mean": 0.091,
+      "difference": 0.127,
+      "wrong_std": 0.98
+    }
+  ],
+  "missed_heavy_rain": {
+    "count": 111,
+    "description": "Instances where heavy rain occurred but the model predicted non-heavy.",
+    "avg_features": {
+      "BT_TIR1": -0.06,
+      "BT_TIR2": 0.36,
+      "BT_WV": 0.07,
+      "CTT": 0.12,
+      "OLR": 0.23,
+      "BT_DIFF": -0.31,
+      "latitude": -0.07,
+      "longitude": 0.06,
+      "month": -0.15,
+      "hour": 0.06
+    }
+  }
+}
