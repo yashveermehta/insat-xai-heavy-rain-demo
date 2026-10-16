@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Method and data | Rainfall Lab{% endblock %}
+
+{% block content %}
+<header class="page-intro">
+    <p class="kicker">METHOD & DATA</p>
+    <h1>A small, testable nowcasting study</h1>
+    <p>To answer the project question, each satellite observation must be paired with rain that occurs later. The current app does not yet contain those real paired records.</p>
+</header>
+
+<section class="method-block">
+    <div class="section-title-row"><div><p class="kicker">PROPOSED EXPERIMENT</p><h2>One observation, one future window, one label</h2></div><p>Keep the target and timestamps identical across every model.</p></div>
+    <ol class="method-steps">
+        <li><span>01</span><div><strong>Read recent satellite frames</strong><p>Use calibrated, geolocated INSAT-3D/3DR imager measurements at the current time and previous available scans. Start with TIR-1, TIR-2 and water-vapour channels. Derive a short-term cloud-top cooling feature from the past frames.</p></div></li>
+        <li><span>02</span><div><strong>Measure rain after the observation</strong><p>For an observation at time <em>t</em>, aggregate rainfall over the next three hours. A proposed event label is an average rate of at least 20 mm/hour, equivalent to 60 mm in three hours. This corresponds to the lower edge of IMD’s “Intense Spell” category; confirm the final threshold with the project guide before training.</p></div></li>
+        <li><span>03</span><div><strong>Train and compare simple models</strong><p>Begin with logistic regression as a baseline, then compare Random Forest and XGBoost. Keep all frames from the same storm in one split to prevent the model seeing nearly identical weather in both training and test data.</p></div></li>
+        <li><span>04</span><div><strong>Explain results and inspect misses</strong><p>Use SHAP on the selected model to show which features raised or lowered the estimated risk. Report event recall, false alarms, missed events and F1 on held-out storms. Treat SHAP as an explanation of model behavior, not atmospheric cause.</p></div></li>
+    </ol>
+</section>
+
+<section class="method-block data-block">
+    <div class="section-title-row"><div><p class="kicker">DATA SOURCES</p><h2>Where the real data can come from</h2></div><p>No satellite or rainfall archive has been downloaded into this project yet.</p></div>
+    <div class="source-list">
+        <article class="source-row"><div class="source-code">A · INPUT</div><div><h3>INSAT-3D/3DR through MOSDAC</h3><p>Request calibrated, geolocated Imager Level-1B files and keep their timestamps. MOSDAC documents the product levels and lists a download API. Searching the catalogue is available without logging in; downloading requires an approved MOSDAC account. Start with a small regional window and a short date range.</p><a href="https://www.mosdac.gov.in/insat-3dr-data-products" target="_blank" rel="noopener">INSAT product description</a><span class="source-separator">·</span><a href="https://www.mosdac.gov.in/downloadapi-manual" target="_blank" rel="noopener">Data catalogue and download instructions</a></div></article>
+        <article class="source-row"><div class="source-code">B · LABEL</div><div><h3>GPM IMERG rainfall estimates</h3><p>NASA lists half-hourly precipitation estimates at 0.1° resolution and three-hour accumulation products. An Earthdata account is required for many download routes. IMERG combines multiple satellite estimates and gauge analysis, so call it a rainfall estimate, not independent ground truth.</p><a href="https://gpm.nasa.gov/data/directory" target="_blank" rel="noopener">NASA GPM data directory</a><span class="source-separator">·</span><a href="https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGHHE_07/summary" target="_blank" rel="noopener">IMERG half-hour product</a></div></article>
+        <article class="source-row"><div class="source-code">C · CHECK</div><div><h3>IMD rainfall observations</h3><p>Use rain-gauge observations for an independent check where the team can obtain time-matched station data. IMD’s three-hour rainfall service shows short-spell intensity categories; its 0.25° gridded archive is daily data and should not be presented as a three-hour nowcast label.</p><a href="https://imdgeospatial.imd.gov.in/Rainfall_3h/" target="_blank" rel="noopener">IMD three-hour rainfall categories</a><span class="source-separator">·</span><a href="https://imdpune.gov.in/lrfindex.php/cmpg/Models_Forecast/latestnews/cmpg/Griddata/rti.php" target="_blank" rel="noopener">IMD gridded rainfall archive</a></div></article>
+    </div>
+</section>
+
+<section class="status-block">
+    <div><p class="kicker">CURRENT BUILD</p><h2>What is implemented</h2></div>
+    <p>The Flask demo compares Random Forest, MLP and XGBoost on 5,000 generated feature rows, displays test metrics, generates SHAP summaries, and counts false alarms and misses. Its binary class is sampled from a simulated probability rule based on several features. Rainfall amounts are then generated conditional on that class. The generator does not create the class by applying the configured 64.5 mm/day threshold to those amounts. All sample cases and scores are synthetic; they do not test the proposed three-hour future-rain target.</p>
+    <p><strong>Data access step:</strong> one team member should request MOSDAC access and inspect the INSAT catalogue while the team agrees with the guide on the study region, event threshold and time window. These choices are needed before the real training table can be built.</p>
+</section>
+{% endblock %}

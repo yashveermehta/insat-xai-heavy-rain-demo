@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Rainfall Lab | Explainable heavy-rain nowcasting{% endblock %}
+
+{% block content %}
+<section class="home-hero">
+    <div class="home-copy">
+        <p class="kicker">H-G6 · MAJOR PROJECT · RESEARCH PROTOTYPE</p>
+        <h1>Heavy-rain nowcasting,<br><em>with its reasoning shown.</em></h1>
+        <p class="home-lede">The project aims to use recent INSAT observations to estimate the risk of intense rain in a future time window, then show which measurements influenced the model.</p>
+        <div class="home-actions">
+            <a href="/predict" class="button-primary">Run the sample demo <span aria-hidden="true">→</span></a>
+            <a href="/dashboard" class="button-text">See model evidence</a>
+        </div>
+    </div>
+    <aside class="home-brief" aria-label="Project status">
+        <div class="brief-top"><span>PROJECT STATUS</span><span>01 / 04</span></div>
+        <p class="brief-title">What works today</p>
+        <ul>
+            <li>Three one-click sample predictions</li>
+            <li>Local SHAP explanation for each result</li>
+            <li>Model comparison and error review</li>
+        </ul>
+        <div class="brief-caution"><b>Data status</b><span>Examples are simulated. No live INSAT files are connected.</span></div>
+    </aside>
+</section>
+
+<section class="target-strip" aria-label="Intended project workflow">
+    <div class="target-intro"><span class="kicker">INTENDED SYSTEM</span><strong>One clear prediction task</strong></div>
+    <div class="target-step"><span>01</span><b>Recent INSAT frames</b><small>Calibrated TIR and water-vapour measurements</small></div>
+    <div class="target-step"><span>02</span><b>Future rain window</b><small>Rainfall label matched after observation time</small></div>
+    <div class="target-step"><span>03</span><b>Risk and reasons</b><small>Probability, SHAP explanation, missed-event review</small></div>
+</section>
+
+<section class="home-scope">
+    <div class="scope-column">
+        <p class="kicker">THE RESEARCH QUESTION</p>
+        <h2>Can recent satellite measurements help identify intense rain before it occurs?</h2>
+        <p>A useful answer needs time-matched satellite and rainfall observations, a stated forecast window, and an evaluation that keeps storms in the test set separate from storms used for training.</p>
+        <a href="/about" class="inline-link">Read the method and data plan <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="scope-column current-scope">
+        <p class="kicker">CURRENT MODEL SCOPE</p>
+        <h2>This build is a demonstration, not a validated nowcast.</h2>
+        <p>The bundled model was trained and tested on generated sample records. Its displayed metrics show that the software pipeline runs; they do not measure skill on real rainfall.</p>
+        <a href="/dashboard" class="inline-link">See the synthetic benchmark, errors and SHAP plots <span aria-hidden="true">→</span></a>
+    </div>
+</section>
+{% endblock %}

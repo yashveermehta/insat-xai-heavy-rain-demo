@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Error analysis | Rainfall Lab{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <h1>Model error analysis</h1>
+    <p>Review false alarms, missed heavy-rain cases, and feature patterns associated with model errors in the synthetic demonstration sample.</p>
+</div>
+
+{% if report %}
+<!-- Error Overview Stats -->
+<div class="section animate-in animate-delay-1">
+    <div class="grid-4">
+        <div class="card stat-card">
+            <div class="stat-value" style="color:var(--text-primary);">{{ report.total_test }}</div>
+            <div class="stat-label">Total Test Instances</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-value" style="color:var(--accent-amber);">{{ report.total_errors }}</div>
+            <div class="stat-label">Total Misclassifications</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-value" style="color:var(--accent-red);">{{ report.false_negatives }}</div>
+                <div class="stat-label">Missed heavy-rain cases</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-value" style="color:var(--accent-cyan);">{{ report.false_positives }}</div>
+                <div class="stat-label">False alarms</div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Failure Pattern Breakdown -->
+<div class="section animate-in animate-delay-2">
+    <div class="grid-2">
+        <div class="card">
+            <h3>Discrepancy Features in Misclassified Events</h3>
+            <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1rem;">
+                Features with the largest mean-value differences between incorrect and correct predictions. Values are standardized, not physical sensor units.
+            </p>
+            {% if 'failure_patterns' in plots %}
+            <img src="/plots/{{ plots['failure_patterns'] }}" alt="Failure Patterns" style="width:100%;border-radius:var(--radius-sm);border:1px solid var(--border-color);">
+            {% else %}
+            <div style="text-align:center;padding:3rem 1rem;color:var(--text-secondary);">Plot will be generated during failure analysis.</div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h3>Missed heavy-rain cases</h3>
+            <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1rem;">
+                A false negative is a heavy-rain example classified as non-heavy. These are demonstration-data cases, not operational warning outcomes.
+            </p>
+            {% if report.missed_heavy_rain and report.missed_heavy_rain.count > 0 %}
+            <div class="pill red" style="margin-bottom:1rem;">
+                {{ report.missed_heavy_rain.count }} missed heavy-rain cases
+            </div>
+            <div style="background:rgba(255,255,255,0.03);padding:1rem;border-radius:var(--radius-sm);border:1px solid var(--border-color);">
+                <div style="font-size:0.85rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.5rem;">Mean standardized feature values during misses:</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.85rem;">
+                    {% for feat, avg in report.missed_heavy_rain.avg_features.items() %}
+                    <div style="display:flex;justify-content:space-between;padding:0.25rem 0.5rem;background:rgba(255,255,255,0.02);border-radius:4px;">
+                        <span style="color:var(--text-muted);">{{ feat }}:</span>
+                        <strong>{{ avg }}</strong>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="pill green">No missed heavy-rain examples in this sample</div>
+            <p style="color:var(--text-secondary);font-size:0.9rem;margin-top:1rem;">
+                This is a descriptive result for the current synthetic test split, not a guarantee of real-world detection.
+            </p>
+            {% endif %}
+
+            <p class="analysis-note">These patterns are descriptive summaries from synthetic data. They do not define validated atmospheric failure conditions.</p>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card animate-in" style="text-align:center;padding:4rem 1rem;">
+    <h3>Failure report not found</h3>
+    <p style="color:var(--text-secondary);max-width:400px;margin:0.5rem auto 1rem;">
+        Run the training and XAI pipeline first to evaluate model errors and generate failure diagnostics.
+    </p>
+    <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
+</div>
+{% endif %}
+{% endblock %}

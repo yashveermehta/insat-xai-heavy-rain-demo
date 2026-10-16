@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}Explainability | Rainfall Lab{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <h1>Global feature explanations</h1>
+    <p>SHAP describes which input features influenced this model on the demonstration dataset. These are model explanations, not proof of atmospheric causation.</p>
+</div>
+
+<!-- Scientific Interpretation Cards -->
+<div class="section animate-in animate-delay-1">
+    <div class="grid-3">
+        <div class="card">
+            <div class="card-header">
+                <div class="icon" style="background:rgba(6,182,212,0.15);color:var(--accent-cyan);">☁️</div>
+                <div>
+                    <h3>Cloud Top Temp (CTT)</h3>
+                    <p>Convective intensity marker</p>
+                </div>
+            </div>
+            <p style="color:var(--text-secondary);font-size:0.9rem;">
+                CTT is included as a cloud-top thermal feature. The SHAP plots show how the fitted model used it in this dataset; they do not establish a physical threshold or causal relationship.
+            </p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="icon" aria-hidden="true">BT</div>
+                <div>
+                    <h3>BT Difference (TIR1 − TIR2)</h3>
+                    <p>Derived channel difference</p>
+                </div>
+            </div>
+            <p style="color:var(--text-secondary);font-size:0.9rem;">
+                BT difference is derived as TIR-1 minus TIR-2. Its contribution is learned from the training examples and should be checked against calibrated satellite data before meteorological interpretation.
+            </p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="icon" aria-hidden="true">OLR</div>
+                <div>
+                    <h3>OLR (Radiation)</h3>
+                    <p>Radiative flux diagnostic</p>
+                </div>
+            </div>
+            <p style="color:var(--text-secondary);font-size:0.9rem;">
+                OLR is another input to the classifier. Its SHAP value indicates model influence for the examples shown, not an independently validated rainfall signal.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Global Feature Importance & Beeswarm Summary -->
+<div class="section animate-in animate-delay-2">
+    <div class="grid-2">
+        <div class="card">
+            <h3>Global Feature Importance (Mean |SHAP|)</h3>
+            <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1rem;">
+                Ranks the overall impact of each satellite channel on the model's heavy rainfall predictions.
+            </p>
+            {% if 'shap_feature_importance' in plots %}
+            <img src="/plots/{{ plots['shap_feature_importance'] }}" alt="SHAP Feature Importance" style="width:100%;border-radius:var(--radius-sm);border:1px solid var(--border-color);">
+            {% else %}
+            <div style="text-align:center;padding:3rem 1rem;color:var(--text-secondary);">Plot will be generated during XAI pipeline run.</div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h3>SHAP Beeswarm Summary Plot</h3>
+            <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1rem;">
+                Shows feature value distributions (red = high, blue = low) and their directional impact on heavy rain likelihood.
+            </p>
+            {% if 'shap_summary' in plots %}
+            <img src="/plots/{{ plots['shap_summary'] }}" alt="SHAP Summary Plot" style="width:100%;border-radius:var(--radius-sm);border:1px solid var(--border-color);">
+            {% else %}
+            <div style="text-align:center;padding:3rem 1rem;color:var(--text-secondary);">Plot will be generated during XAI pipeline run.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Feature Dependence Plots -->
+<div class="section animate-in animate-delay-3">
+    <div class="section-title">Feature dependence plots</div>
+    <div class="grid-3">
+        {% for key, filename in plots.items() %}
+        {% if key.startswith('shap_dependence_') %}
+        <div class="card">
+            <h3>{{ key.replace('shap_dependence_', '') | upper }} Dependence</h3>
+            <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:0.75rem;">
+                SHAP values shown against standardized model feature values.
+            </p>
+            <img src="/plots/{{ filename }}" alt="{{ key }}" style="width:100%;border-radius:var(--radius-sm);border:1px solid var(--border-color);">
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Run a sample | Rainfall Lab{% endblock %}
+
+{% block content %}
+<header class="page-header prediction-heading">
+    <div class="eyebrow">PREDICTION WORKBENCH <span class="demo-tag">SIMULATED CASES</span></div>
+    <h1>See what the model does.</h1>
+    <p>Choose a prepared example to run the classifier and inspect its explanation. No data entry is needed for the demonstration.</p>
+</header>
+
+<section class="data-explainer" aria-label="Why the model needs input data">
+    <div class="data-explainer-mark" aria-hidden="true">i</div>
+    <div>
+        <h2>Why does a model need data?</h2>
+        <p>The current demo classifies a prepared record using simulated satellite-style measurements. Its training label comes from an illustrative probability rule, not a measured rainfall threshold. It does not forecast the next three hours. A real nowcast would read calibrated satellite measurements and compare them with rain observed after the satellite pass.</p>
+    </div>
+</section>
+
+{% if form_error %}<div class="form-error" role="alert">{{ form_error }}</div>{% endif %}
+
+<section class="case-section" aria-labelledby="sample-cases-heading">
+    <div class="section-heading">
+        <div><div class="eyebrow">START HERE</div><h2 id="sample-cases-heading">Run a prepared sample</h2></div>
+        <p>Each case sends its sample measurements to the trained model. Results are demonstrations, not live forecasts.</p>
+    </div>
+    <form method="POST" action="/predict" id="predictForm" class="case-grid">
+        <button class="case-card" type="button" onclick="runPreset('cold')">
+            <span class="case-index">CASE 01 · SIMULATED</span>
+            <strong>Colder cloud-top example</strong>
+            <span>Run one set of sample satellite-style measurements and see the model response.</span>
+            <span class="case-action">Run this case <b aria-hidden="true">→</b></span>
+        </button>
+        <button class="case-card" type="button" onclick="runPreset('mixed')">
+            <span class="case-index">CASE 02 · SIMULATED</span>
+            <strong>Intermediate-temperature example</strong>
+            <span>Compare a second prepared observation with the first model result.</span>
+            <span class="case-action">Run this case <b aria-hidden="true">→</b></span>
+        </button>
+        <button class="case-card" type="button" onclick="runPreset('warm')">
+            <span class="case-index">CASE 03 · SIMULATED</span>
+            <strong>Warmer cloud-top example</strong>
+            <span>Inspect how a different input pattern changes the classification and explanation.</span>
+            <span class="case-action">Run this case <b aria-hidden="true">→</b></span>
+        </button>
+        {% for feat in features %}<input type="hidden" id="{{ feat }}" name="{{ feat }}" value="{{ form_values.get(feat, '') }}">{% endfor %}
+    </form>
+</section>
+
+{% if result %}
+<section class="result-section" aria-live="polite">
+    <div class="result-topline"><div><div class="eyebrow">MODEL OUTPUT · SIMULATED INPUT</div><h2>Prediction result</h2></div><a href="/predict" class="text-link">Clear result</a></div>
+    <div class="result-overview">
+        <div class="result-class {% if result.prediction == 1 %}result-heavy{% else %}result-other{% endif %}">
+            <span>CLASSIFICATION</span><strong>{{ result.prediction_label }}</strong>
+            <p>This is a simulated class learned from generated examples. It is not a measured rainfall amount, a 64.5 mm/day threshold decision, or a forecast of future rain.</p>
+        </div>
+        <div class="result-stat"><span>Model confidence</span><strong>{{ (result.confidence * 100) | round(1) }}%</strong><small>Confidence is not a guarantee of correctness.</small></div>
+        <div class="result-stat"><span>Inputs considered</span><strong>{{ result.feature_contributions | length }}</strong><small>Satellite-style and observation-context features.</small></div>
+    </div>
+    <div class="explanation-heading"><div><div class="eyebrow">LOCAL EXPLANATION</div><h3>What influenced this result?</h3></div><p>SHAP shows how each input moved this model’s output. It describes model behavior, not atmospheric cause.</p></div>
+    <div class="contribution-list">
+        {% for c in result.feature_contributions %}
+        <div class="contribution-row">
+            <div class="contribution-name"><strong>{{ c.label }}</strong><span>Input: {{ c.raw_value }}</span></div>
+            <div class="contribution-track"><span class="contribution-fill {% if c.shap_value < 0 %}negative{% endif %}" style="width:{{ [c.shap_value | abs * 150, 100] | min }}%"></span></div>
+            <strong class="contribution-value {% if c.shap_value < 0 %}negative-text{% endif %}">{{ '+' if c.shap_value > 0 else '' }}{{ c.shap_value }}</strong>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% else %}
+<section class="result-empty"><span class="empty-number">OUTPUT</span><p>Your classification and local explanation will appear here after you run a sample.</p></section>
+{% endif %}
+
+<details class="advanced-inputs">
+    <summary>For project review: inspect or edit the model inputs</summary>
+    <p class="advanced-copy">These are the numerical features expected by the current trained model. In real deployment they would be produced from calibrated INSAT data and a defined observation window. The fields below are only for technical inspection; use the sample cases above for the normal demo.</p>
+    <form method="POST" action="/predict" class="manual-form">
+        {% for group_title, group_features in feature_groups %}
+        <fieldset class="feature-set"><legend>{{ group_title }}</legend><div class="form-grid">
+            {% for feat in group_features %}<div class="form-group"><label for="manual_{{ feat }}">{{ labels.get(feat, feat) }}</label><input type="number" {% if feat in ('month', 'hour') %}step="1"{% else %}step="any"{% endif %} class="form-control" id="manual_{{ feat }}" name="{{ feat }}" value="{{ form_values.get(feat, '') }}" {% if feat != 'BT_DIFF' %}required{% endif %} {% if feat in ('month', 'hour') %}min="{{ 1 if feat == 'month' else 0 }}" max="{{ 12 if feat == 'month' else 23 }}"{% endif %}>{% if feat == 'BT_DIFF' %}<small class="field-hint">Leave blank to calculate TIR-1 minus TIR-2.</small>{% endif %}</div>{% endfor %}
+        </div></fieldset>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Run edited inputs</button>
+    </form>
+</details>
+
+<script>
+const PRESETS = {
+  cold: {BT_TIR1:205.2,BT_TIR2:208.5,BT_WV:220.1,CTT:200.4,OLR:125.0,BT_DIFF:-3.3,latitude:19.07,longitude:72.87,month:7,hour:12},
+  mixed: {BT_TIR1:250.0,BT_TIR2:252.0,BT_WV:245.0,CTT:248.0,OLR:210.0,BT_DIFF:-2.0,latitude:13.08,longitude:80.27,month:9,hour:6},
+  warm: {BT_TIR1:295.4,BT_TIR2:293.1,BT_WV:265.8,CTT:290.0,OLR:285.5,BT_DIFF:2.3,latitude:28.61,longitude:77.20,month:6,hour:15}
+};
+function runPreset(key) {
+  const values = PRESETS[key];
+  if (!values) return;
+  for (const [name, value] of Object.entries(values)) document.getElementById(name).value = value;
+  document.getElementById('predictForm').requestSubmit();
+}
+</script>
+{% endblock %}

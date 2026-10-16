@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Evidence | Rainfall Lab{% endblock %}
+
+{% block content %}
+<header class="page-intro">
+    <p class="kicker">MODEL EVIDENCE · SYNTHETIC DATA</p>
+    <h1>Performance, explanations and misses</h1>
+    <p>These are held-out results from generated records. They show how the evaluation pages work; they do not establish skill on INSAT observations or real rainfall.</p>
+</header>
+
+{% if metrics %}
+<section class="evidence-section" aria-labelledby="comparison-title">
+    <div class="section-title-row"><div><p class="kicker">01 · COMPARISON</p><h2 id="comparison-title">Candidate models</h2></div><p>Selected using validation F1. Scores below are from a separate synthetic test split.</p></div>
+    <div class="table-wrap"><table class="evidence-table"><thead><tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Heavy-rain recall</th><th>F1</th><th>ROC-AUC</th></tr></thead><tbody>
+    {% for model_name, m in metrics.items() %}{% if model_name not in ('best_model','selection_metric','validation') %}
+    <tr{% if model_name == metrics.get('best_model') %} class="selected-model"{% endif %}><th scope="row">{{ model_name }}{% if model_name == metrics.get('best_model') %}<span class="selected-label">SELECTED</span>{% endif %}</th><td>{{ (m.get('accuracy',0)*100)|round(1) }}%</td><td>{{ (m.get('precision',0)*100)|round(1) }}%</td><td>{{ (m.get('recall',0)*100)|round(1) }}%</td><td>{{ (m.get('f1_score',0)*100)|round(1) }}%</td><td>{{ m.get('roc_auc',0)|round(3) }}</td></tr>
+    {% endif %}{% endfor %}</tbody></table></div>
+    <p class="method-note">Recall is shown because missed heavy-rain cases matter. Accuracy alone can hide misses when event classes are uneven.</p>
+</section>
+
+<section class="evidence-section" aria-labelledby="explanation-title">
+    <div class="section-title-row"><div><p class="kicker">02 · EXPLAINABILITY</p><h2 id="explanation-title">What the model used</h2></div><p>SHAP describes model behavior on this synthetic sample. It does not prove physical causation.</p></div>
+    <div class="figure-grid">
+        <figure class="evidence-figure"><figcaption><strong>Average feature influence</strong><span>Mean absolute SHAP value</span></figcaption>{% if 'shap_feature_importance' in plots %}<img src="/plots/{{ plots['shap_feature_importance'] }}" alt="Mean absolute SHAP importance for model input features">{% else %}<p>Run the XAI pipeline to generate this plot.</p>{% endif %}</figure>
+        <figure class="evidence-figure"><figcaption><strong>Direction across examples</strong><span>SHAP summary plot</span></figcaption>{% if 'shap_summary' in plots %}<img src="/plots/{{ plots['shap_summary'] }}" alt="SHAP summary plot showing feature values and their influence">{% else %}<p>Run the XAI pipeline to generate this plot.</p>{% endif %}</figure>
+    </div>
+</section>
+
+<section class="evidence-section" aria-labelledby="failure-title">
+    <div class="section-title-row"><div><p class="kicker">03 · FAILURE REVIEW</p><h2 id="failure-title">Where it got the answer wrong</h2></div><p>A useful model review counts both false alarms and missed events.</p></div>
+    {% if report %}
+    <div class="error-summary"><div><span>TEST RECORDS</span><strong>{{ report.total_test }}</strong></div><div><span>ALL ERRORS</span><strong>{{ report.total_errors }}</strong></div><div class="missed-count"><span>MISSED HEAVY CASES</span><strong>{{ report.false_negatives }}</strong></div><div><span>FALSE ALARMS</span><strong>{{ report.false_positives }}</strong></div></div>
+    <figure class="evidence-figure error-figure"><figcaption><strong>Feature differences in incorrect cases</strong><span>Standardized values · descriptive only</span></figcaption>{% if 'failure_patterns' in plots %}<img src="/plots/{{ plots['failure_patterns'] }}" alt="Feature differences in misclassified synthetic records">{% else %}<p>Run the XAI pipeline to generate this plot.</p>{% endif %}</figure>
+    <p class="method-note">These errors come from synthetic records. The project’s real evaluation must split by storm or time period and verify missed events against rainfall observations.</p>
+    {% else %}<p>Run the XAI pipeline to create the failure report.</p>{% endif %}
+</section>
+
+<section class="evidence-section dependence-section">
+    <div class="section-title-row"><div><p class="kicker">04 · FEATURE RESPONSE</p><h2>How selected features relate to SHAP output</h2></div><p>Dependence plots are exploratory views, not meteorological laws.</p></div>
+    <div class="dependence-grid">{% for key, filename in plots.items() %}{% if key.startswith('shap_dependence_') %}<figure class="evidence-figure"><figcaption><strong>{{ key.replace('shap_dependence_','')|upper }}</strong></figcaption><img src="/plots/{{ filename }}" alt="SHAP dependence plot for {{ key.replace('shap_dependence_','') }}"></figure>{% endif %}{% endfor %}</div>
+</section>
+{% else %}
+<section class="evidence-section"><h2>Model results have not been built</h2><p>Follow the setup instructions in the project README to generate the metrics.</p></section>
+{% endif %}
+{% endblock %}
