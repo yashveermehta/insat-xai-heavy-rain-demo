@@ -1,0 +1,40 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.log
+.env
+~$*.docx
+
+# Student/college submission materials can contain names, IDs, signatures, or logos.
+*.docx
+*.pptx
+*.pdf
+college_logo.png
+template_doc.xml
+template_styles.xml
+build_project_documents.py
+build_friend_guide.py
+generate_synopsis.py
+generate_perfect_synopsis.py
+revise_synopsis_template.py
+check_logo.py
+
+# Local review output and authoring workspaces.
+_qa/
+.ppt_build/
+pptx_output/
+*.tmp
+*.bak
+
+# Reproducible training data is generated from the public synthetic source.
+data/processed/
+data/raw/*
+!data/raw/synthetic_satellite_data.csv
+
+# Keep only the selected model required by the hosted demo.
+models/*.joblib
+!models/best_model.joblib
+!models/scaler.joblib
+models/*_old*
+
+.github-upload-staging/
